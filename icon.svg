@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0d0d14"/>
+  <rect x="48" y="48" width="416" height="416" rx="80" fill="#1a1a2e"/>
+  <text x="256" y="320" font-size="260" text-anchor="middle" font-family="system-ui">🎯</text>
+  <rect x="80" y="360" width="352" height="8" rx="4" fill="#7c6af7" opacity="0.6"/>
+</svg>

@@ -1,0 +1,19 @@
+{
+  "name": "Leisurelog",
+  "short_name": "Leisurelog",
+  "description": "Personal tracker for books, shows, anime, games and more",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0d0d14",
+  "theme_color": "#7c6af7",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

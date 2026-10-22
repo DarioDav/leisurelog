@@ -811,25 +811,60 @@
       .sidebar { display: none; }
       .bottom-nav { display: flex; }
 
-      .content { padding: 14px 14px 82px; }
-
-      .topbar { padding: 10px 14px; gap: 8px; }
-      .topbar-title { font-size: 15px; }
+      /* Push topbar below status bar (env() is 0 when not in PWA, so safe globally) */
+      .topbar {
+        padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 10px;
+        gap: 8px;
+      }
+      .topbar-title { font-size: 17px; }
       .search-wrap { max-width: none; }
       .btn-add { display: none; }
       .sync-pill span:last-child { display: none; }
 
+      /* Account for home indicator at bottom */
+      .content {
+        padding: 16px 14px calc(82px + env(safe-area-inset-bottom, 0px));
+      }
+
       .dash-row { grid-template-columns: 1fr; }
       .form-row { grid-template-columns: 1fr; }
+
+      /* Larger text throughout — everything was too small on phone */
+      .panel-title { font-size: 13px; letter-spacing: 0.5px; margin-bottom: 14px; }
+      .list-item { padding: 10px 0; }
+      .list-title { font-size: 16px; }
+      .list-sub { font-size: 13px; }
+      .list-stars { font-size: 16px; }
+      .list-icon { width: 36px; height: 36px; font-size: 17px; }
+
+      .stat-count { font-size: 30px; }
+      .stat-label { font-size: 14px; }
+      .stat-icon { font-size: 26px; }
+      .stat-card { padding: 18px; gap: 8px; }
+
+      .year-title { font-size: 15px; }
+      .yr-label { font-size: 13px; }
+      .yr-item { font-size: 15px; }
+
+      .s-bar-label { font-size: 14px; width: 95px; min-width: 95px; }
+      .s-bar-count { font-size: 13px; }
+
+      .chip { font-size: 14px; padding: 7px 15px; }
+
+      .card-title { font-size: 16px; }
+      .card-creator { font-size: 13px; }
+      .sort-bar > span { font-size: 14px; }
+      .sort-bar select { font-size: 14px; padding: 7px 12px; }
+      .result-count { font-size: 13px; }
 
       /* Always show card actions on touch — can't hover */
       .card-actions { opacity: 1; }
       .card-btn { width: 32px; height: 32px; font-size: 13px; }
 
-      /* Toast at top so keyboard doesn't cover it */
+      /* Toast below topbar, above content */
       .toast {
         bottom: auto;
-        top: 68px;
+        top: calc(env(safe-area-inset-top, 0px) + 62px);
         right: 14px;
         left: 14px;
         text-align: center;
@@ -840,13 +875,16 @@
       .modal { border-radius: 20px 20px 0 0; max-height: 96vh; }
       #entry-modal, #settings-modal { max-width: 100%; }
       .modal-head { padding: 16px 18px 0; }
-      .modal-body { padding: 14px 18px 18px; }
+      .modal-body { padding: 14px 18px 18px; gap: 16px; }
       .modal-foot { padding: 0 18px 18px; }
+      .fg label { font-size: 12px; }
+      .fi { font-size: 15px; padding: 11px 14px; }
+      .star { font-size: 26px; }
+      .btn { padding: 12px 20px; font-size: 15px; }
     }
 
     @media (max-width: 400px) {
       .stat-row { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
-      .topbar-title { font-size: 13px; }
     }
 
     /* ── YEAR TRACKER ─────────────────────────── */
@@ -2273,6 +2311,10 @@ document.addEventListener('keydown', e => {
 loadLocal();
 render();
 syncLoad();   // pull from Sheets if configured (async, won't block UI)
+
+if (window.matchMedia('(max-width: 768px)').matches) {
+  document.getElementById('search-input').placeholder = 'Search titles, creators…';
+}
 </script>
 </body>
 </html>

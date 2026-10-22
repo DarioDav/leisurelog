@@ -932,6 +932,56 @@
 
     .yr-item:hover { border-color: var(--accent); color: var(--text); }
     .yr-item strong { color: var(--text); }
+
+    /* ── HIGHLIGHTS PANEL ─────────────────────── */
+    .hl-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .hl-row:last-child { border-bottom: none; }
+    .hl-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; }
+    .hl-value { font-size: 14px; color: var(--text); line-height: 1.6; }
+
+    .hl-tags { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 2px; }
+    .hl-tag {
+      font-size: 13px;
+      color: var(--text2);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 11px;
+    }
+    .hl-tag em { font-style: normal; color: var(--accent2); margin-left: 4px; }
+
+    .hl-quotes { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; }
+    .hl-quote {
+      background: rgba(124,106,247,0.07);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 10px 10px 0;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .hl-quote:hover { background: rgba(124,106,247,0.14); }
+    .hl-quote-text { font-size: 14px; color: var(--text); line-height: 1.5; font-style: italic; }
+    .hl-quote-src { font-size: 12px; color: var(--text3); margin-top: 5px; }
+
+    /* Highlight quote shown on library cards */
+    .card-highlight {
+      font-size: 12.5px;
+      color: var(--text2);
+      font-style: italic;
+      border-left: 2px solid var(--accent);
+      padding: 4px 0 4px 9px;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
   </style>
 </head>
 <body>
@@ -1078,6 +1128,12 @@
         <div class="fg">
           <label>Notes / Review</label>
           <textarea class="fi" id="f-notes" placeholder="Your thoughts, a mini review, quotes you liked…"></textarea>
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="fg">
+          <label>Highlight <span style="font-size:10px;color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0">— a quote or moment worth remembering</span></label>
+          <input type="text" class="fi" id="f-highlight" placeholder="e.g. "Not all those who wander are lost"…">
         </div>
       </div>
     </div>
@@ -1855,6 +1911,69 @@ function renderSidebar() {
     ? `<div class="sidebar-section"><div class="sidebar-label">By Status</div>${statusItems}</div>` : '';
 }
 
+// ── HIGHLIGHTS ────────────────────────────────────────────────────────────────
+
+function renderHighlights() {
+  const now       = new Date();
+  const yearMonth = now.toISOString().slice(0, 7);
+  const monthName = now.toLocaleDateString('en-US', { month: 'long' });
+
+  // Completions this calendar month
+  const monthDone = {};
+  S.entries.forEach(e => {
+    if (e.dateFinished && String(e.dateFinished).startsWith(yearMonth))
+      monthDone[e.type] = (monthDone[e.type] || 0) + 1;
+  });
+  const totalMonth = Object.values(monthDone).reduce((a, b) => a + b, 0);
+
+  // Top tags/topics across the whole library
+  const tagCounts = {};
+  S.entries.forEach(e => {
+    (e.tags || []).forEach(t => {
+      const tag = t.toLowerCase().trim();
+      if (tag.length > 1) tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+    });
+  });
+  const topTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).slice(0, 4);
+
+  // Entries with a highlight quote
+  const quotes = S.entries.filter(e => e.highlight && e.highlight.trim()).slice(0, 3);
+
+  if (!totalMonth && !topTags.length && !quotes.length) return '';
+
+  let rows = '';
+
+  if (totalMonth) {
+    const items = Object.entries(TYPES)
+      .filter(([k]) => monthDone[k])
+      .map(([k, v]) => `${v.emoji} <strong>${monthDone[k]}</strong> ${v.label}${monthDone[k] > 1 ? 's' : ''}`)
+      .join('&ensp;·&ensp;');
+    rows += `<div class="hl-row"><div class="hl-label">📅 ${monthName}</div><div class="hl-value">${items}</div></div>`;
+  }
+
+  if (topTags.length) {
+    const tagsHtml = topTags.map(([t, c]) =>
+      `<span class="hl-tag">${esc(t)}<em>${c}</em></span>`).join('');
+    rows += `<div class="hl-row"><div class="hl-label">🏷️ Top Topics</div><div class="hl-tags">${tagsHtml}</div></div>`;
+  }
+
+  const quotesHtml = quotes.length ? `
+    <div class="hl-quotes">
+      ${quotes.map(e => `
+        <div class="hl-quote" onclick="editEntry('${e.id}')">
+          <div class="hl-quote-text">"${esc(e.highlight)}"</div>
+          <div class="hl-quote-src">— ${esc(e.title)}</div>
+        </div>`).join('')}
+    </div>` : '';
+
+  return `
+    <div class="panel" style="margin-bottom:14px">
+      <div class="panel-title">✨ Highlights</div>
+      ${rows}
+      ${quotesHtml}
+    </div>`;
+}
+
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 
 function renderDashboard() {
@@ -1934,6 +2053,7 @@ function renderDashboard() {
   return `
     ${renderYearStats()}
     <div class="stat-row">${totalCard}${typeCards}</div>
+    ${renderHighlights()}
     <div class="dash-row">
       <div class="panel">
         <div class="panel-title">Recently Added</div>${recent}
@@ -2039,6 +2159,7 @@ function renderCard(e) {
       ${stars}
       ${e.progress ? `<div class="card-progress">📍 ${esc(e.progress)}</div>` : ''}
       ${e.notes ? `<div class="card-notes">${esc(e.notes)}</div>` : ''}
+      ${e.highlight ? `<div class="card-highlight">"${esc(e.highlight)}"</div>` : ''}
       ${tags ? `<div class="card-tags">${tags}</div>` : ''}
       <div class="card-footer">
         <span class="card-date">${dateLabel}</span>
@@ -2059,8 +2180,9 @@ function openModal(id) {
   document.getElementById('f-status').value   = 'want';
   document.getElementById('f-progress').value = '';
   document.getElementById('f-tags').value     = '';
-  document.getElementById('f-notes').value    = '';
-  document.getElementById('f-finished').value = '';
+  document.getElementById('f-notes').value      = '';
+  document.getElementById('f-highlight').value  = '';
+  document.getElementById('f-finished').value   = '';
   updateStars(0);
 
   if (id) {
@@ -2073,8 +2195,9 @@ function openModal(id) {
       document.getElementById('f-status').value   = e.status;
       document.getElementById('f-progress').value = e.progress || '';
       document.getElementById('f-tags').value     = (e.tags||[]).join(', ');
-      document.getElementById('f-notes').value    = e.notes || '';
-      document.getElementById('f-started').value  = e.dateStarted || '';
+      document.getElementById('f-notes').value      = e.notes || '';
+      document.getElementById('f-highlight').value  = e.highlight || '';
+      document.getElementById('f-started').value    = e.dateStarted || '';
       document.getElementById('f-finished').value = e.dateFinished || '';
       S.rating = e.rating || 0;
       updateStars(S.rating);
@@ -2124,6 +2247,7 @@ function saveEntry() {
     progress:     document.getElementById('f-progress').value.trim(),
     tags,
     notes:        document.getElementById('f-notes').value.trim(),
+    highlight:    document.getElementById('f-highlight').value.trim() || null,
     dateStarted:  document.getElementById('f-started').value  || null,
     dateFinished: document.getElementById('f-finished').value || null,
     rating:       S.rating || null,
